@@ -1391,35 +1391,38 @@
   }
 
   function submitForm() {
-    const fullName = (document.getElementById('firstName').value + ' ' + document.getElementById('lastName').value).trim();
-    const langs = [...document.querySelectorAll('.lang-check input:checked')].map(cb => cb.value).join(', ');
+  const fullName = (document.getElementById('firstName').value + ' ' + document.getElementById('lastName').value).trim();
 
-    const FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSddW06xRuumLiPILcJspFRk5Add6RLYs7TxjmxS32iuzJIXmg/formResponse';
+  const FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSddW06xRuumLiPILcJspFRk5Add6RLYs7TxjmxS32iuzJIXmg/formResponse';
 
-    const params = new URLSearchParams({
-      'entry.1706374682': fullName,
-      'entry.2072009657': document.getElementById('org').value,
-      'entry.1291542179': document.getElementById('pubType').value,
-      'entry.1322972550': document.getElementById('stage').value,
-      'entry.424135780':  document.querySelector('input[name="challenge"]:checked')?.value || '',
-      'entry.1472617678': langs,
-      'entry.1552979869': document.getElementById('deadlineDate').value,
-      'entry.889744050':  document.getElementById('addContext').value,
-      'entry.1318459950': document.getElementById('email').value,
-    });
+  // Build params manually to support multiple values for checkboxes
+  const params = new URLSearchParams();
+  params.append('entry.1706374682', fullName);
+  params.append('entry.2072009657', document.getElementById('org').value);
+  params.append('entry.1291542179', document.getElementById('pubType').value);
+  params.append('entry.1322972550', document.getElementById('stage').value);
+  params.append('entry.424135780',  document.querySelector('input[name="challenge"]:checked')?.value || '');
+  params.append('entry.1552979869', document.getElementById('deadlineDate').value);
+  params.append('entry.889744050',  document.getElementById('addContext').value);
+  params.append('entry.1318459950', document.getElementById('email').value);
 
-    fetch(FORM_ACTION, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: params.toString()
-    }).catch(() => {});
+  // Each checked language must be appended separately
+  document.querySelectorAll('.lang-check input:checked').forEach(cb => {
+    params.append('entry.1472617678', cb.value);
+  });
 
-    document.getElementById('refCode').textContent = generateRef();
-    goTo('success');
-    document.getElementById('stepper').style.opacity = '0.3';
-    document.getElementById('stepper').style.pointerEvents = 'none';
-  }
+  fetch(FORM_ACTION, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params.toString()
+  }).catch(() => {});
+
+  document.getElementById('refCode').textContent = generateRef();
+  goTo('success');
+  document.getElementById('stepper').style.opacity = '0.3';
+  document.getElementById('stepper').style.pointerEvents = 'none';
+}
 </script>
 
 </body>
