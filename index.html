@@ -1321,7 +1321,7 @@
 <script>
   let currentStep = 1;
 
-  function goTo(step) {
+   goTo(step) {
     // Hide current
     document.getElementById('step' + currentStep)?.classList.remove('active');
     document.getElementById('step-success')?.classList.remove('active');
@@ -1340,7 +1340,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function updateStepper(active) {
+   updateStepper(active) {
     for (let i = 1; i <= 4; i++) {
       const circle = document.getElementById('sc' + i);
       const label = document.getElementById('sl' + i);
@@ -1365,7 +1365,7 @@
     }
   }
 
-  function showConditional(type) {
+   showConditional(type) {
     // Hide all
     ['workflow', 'translation', 'clearance'].forEach(t => {
       const el = document.getElementById('cond-' + t);
@@ -1377,7 +1377,7 @@
     if (el) el.classList.add('visible');
   }
 
-  function limitSupport() {
+   limitSupport() {
     const checked = document.querySelectorAll('input[name="support"]:checked');
     const all = document.querySelectorAll('input[name="support"]');
     if (checked.length >= 2) {
@@ -1389,19 +1389,48 @@
     }
   }
 
-  function generateRef() {
+   generateRef() {
     const year = new Date().getFullYear();
     const num = Math.floor(1000 + Math.random() * 9000);
     return `CP-${year}-${num}`;
   }
 
   function submitForm() {
-    document.getElementById('refCode').textContent = generateRef();
-    goTo('success');
-    // Hide stepper on success
-    document.getElementById('stepper').style.opacity = '0.3';
-    document.getElementById('stepper').style.pointerEvents = 'none';
-  }
+  // Merge first + last name
+  const fullName = (document.getElementById('firstName').value + ' ' + document.getElementById('lastName').value).trim();
+
+  // Collect checked languages
+  const langs = [...document.querySelectorAll('.lang-check input:checked')].map(cb => cb.value).join(', ');
+
+  // Google Form submit URL
+  const FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSddW06xRuumLiPILcJspFRk5Add6RLYs7TxjmxS32iuzJIXmg/formResponse';
+
+  const params = new URLSearchParams({
+    'entry.1706374682': fullName,
+    'entry.2072009657': document.getElementById('org').value,
+    'entry.1291542179': document.getElementById('pubType').value,
+    'entry.1322972550': document.getElementById('stage').value,
+    'entry.424135780':  document.querySelector('input[name="challenge"]:checked')?.value || '',
+    'entry.1472617678': langs,
+    'entry.1552979869': document.getElementById('deadlineDate').value,
+    'entry.889744050':  document.getElementById('addContext').value,
+    'entry.1318459950': document.getElementById('email').value,
+  });
+
+  // Silent background submit — user stays on success screen
+  fetch(FORM_ACTION, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params.toString()
+  }).catch(() => {}); // Silently ignore CORS errors — submission still goes through
+
+  // Show Clearpath success screen
+  document.getElementById('refCode').textContent = generateRef();
+  goTo('success');
+  document.getElementById('stepper').style.opacity = '0.3';
+  document.getElementById('stepper').style.pointerEvents = 'none';
+}
 </script>
 
 </body>
